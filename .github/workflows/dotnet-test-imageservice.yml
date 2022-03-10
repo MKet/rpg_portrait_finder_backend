@@ -16,7 +16,7 @@ on:
       
 env:
   PROJECT_PATH: 'ImageService/ImageService.csproj'
-  TEST_PATH: 'ImageServiceTests/ImageServiceTest.csproj'
+  TEST_PATH: 'ImageServiceTest/ImageServiceTest.csproj'
 
 jobs:
   build:
