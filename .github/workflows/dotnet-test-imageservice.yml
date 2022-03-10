@@ -13,6 +13,10 @@ on:
       - "ImageService/**"
       - "ImageServiceTests/**"
       - ".github/workflows/dotnet-test-imageservice.yml"
+      
+env:
+  PROJECT_PATH: 'ImageService/ImageService.csproj'
+  TEST_PATH: 'ImageServiceTests/ImageServiceTests.csproj'
 
 jobs:
   build:
@@ -25,9 +29,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: 'Restore packages'
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+    - name: 'Build project'
+      run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
+    - name: Run tests
+      run: dotnet test ${{ env.TEST_PATH }}
