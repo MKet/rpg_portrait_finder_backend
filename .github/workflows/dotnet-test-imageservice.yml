@@ -1,0 +1,39 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]    
+    paths:
+      - "ImageService/**"
+      - "ImageServiceTest/**"
+      - ".github/workflows/dotnet-test-imageservice.yml"
+  pull_request:
+    branches: [ main ]
+    paths:
+      - "ImageService/**"
+      - "ImageServiceTest/**"
+      - ".github/workflows/dotnet-test-imageservice.yml"
+      
+env:
+  PROJECT_PATH: 'ImageService/ImageService.csproj'
+  TEST_PATH: 'ImageServiceTest/ImageServiceTest.csproj'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: | 
+          3.1.x
+          5.0.x
+    - name: 'Restore packages'
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+    - name: 'Build project'
+      run: dotnet build ${{ env.PROJECT_PATH }} --no-restore --configuration Release
+    - name: Run tests
+      run: dotnet test ${{ env.TEST_PATH }}
