@@ -5,18 +5,18 @@ on:
     branches: [ main ]    
     paths:
       - "ImageService/**"
-      - "ImageServiceTests/**"
+      - "ImageServiceTest/**"
       - ".github/workflows/dotnet-test-imageservice.yml"
   pull_request:
     branches: [ main ]
     paths:
       - "ImageService/**"
-      - "ImageServiceTests/**"
+      - "ImageServiceTest/**"
       - ".github/workflows/dotnet-test-imageservice.yml"
       
 env:
   PROJECT_PATH: 'ImageService/ImageService.csproj'
-  TEST_PATH: 'ImageServiceTests/ImageServiceTests.csproj'
+  TEST_PATH: 'ImageServiceTests/ImageServiceTest.csproj'
 
 jobs:
   build:
