@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
+using Azure.Storage.Blobs.Models;
+using ImageService.Data.RequestData;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -20,9 +22,14 @@ namespace ImageService.Controllers
 
         // GET: api/<ImageController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IEnumerable<string>> Get()
         {
-            return new string[] { "value1", "value2" };
+            List<string> list = new List<string>();
+            await foreach (var item in  blobClient.GetBlobContainersAsync())
+            {
+                list.Add(item.Name);
+            }
+            return list;
         }
 
         // GET api/<ImageController>/5
@@ -34,35 +41,24 @@ namespace ImageService.Controllers
 
         // POST api/<ImageController>
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] string username)
+        public async Task<IActionResult> PostAsync([ModelBinder(BinderType = typeof(JsonModelBinder))] ImagePostRequest requestData, IFormFile file)
         {
-            var request = HttpContext.Request;
+            if (requestData == null)
+                return BadRequest("Request data is required");
 
-            if (!request.HasFormContentType ||
-                !MediaTypeHeaderValue.TryParse(request.ContentType, out var mediaTypeHeader) ||
-                string.IsNullOrEmpty(mediaTypeHeader.Boundary.Value))
-            {
-                return new UnsupportedMediaTypeResult();
-            }
+            if (requestData.ArtistName == null || requestData.ArtistName == string.Empty)
+                return BadRequest("Request data is invalid. Artist name must be provided");
+            else if (requestData.ImageName == null || requestData.ImageName == string.Empty)
+                return BadRequest("Request data is invalid. Image name must be provided");
 
-            var reader = new MultipartReader(mediaTypeHeader.Boundary.Value, request.Body);
-            var section = await reader.ReadNextSectionAsync();
-            return new OkResult();
+            var containerClient = blobClient.GetBlobContainerClient(blobContainerName: requestData.ArtistName.ToLower());
+            await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+            var client = containerClient.GetBlobClient(requestData.ImageName.ToLower());
 
-
-            while (section != null)
-            {
-                var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition,
-                    out var contentDisposition);
-
-
-            }
-        }
-
-        // PUT api/<ImageController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
+            using var stream = file.OpenReadStream();
+            await client.UploadAsync(stream);
+            
+            return Ok();
         }
 
         // DELETE api/<ImageController>/5
