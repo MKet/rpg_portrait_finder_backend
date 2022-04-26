@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace AuthenticationLibrary.Models
 {
-    public record AuthenticationData(string Email, string Password);
+    public record AuthenticationData(string Username, string Password);
 }

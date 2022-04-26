@@ -17,7 +17,7 @@ namespace AuthenticationService.Controllers
         [HttpPost]
         public async Task<ActionResult<AuthToken>> Authenticate([FromBody] AuthenticationData authenticationData)
         {
-            var token = await _service.LoginAsync(authenticationData.Email, authenticationData.Password);
+            var token = await _service.LoginAsync(authenticationData.Username, authenticationData.Password);
 
             if (token is not null) 
             {

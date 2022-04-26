@@ -22,7 +22,8 @@ builder.Services.AddScoped<IAuthenticationService, JwtAuthenticationService>(
     provider => 
         new JwtAuthenticationService(
             provider.GetRequiredService<IUserRepository>(), 
-            builder.Configuration["JwtSecret"]
+            builder.Configuration["JwtSecret"],
+            provider.GetService<ILogger<JwtAuthenticationService>>()
             )
         );
 
