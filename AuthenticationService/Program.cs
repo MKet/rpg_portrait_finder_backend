@@ -1,26 +1,45 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AuthenticationService.Data.Contexts;
+using AuthenticationService.Data.Repositories;
+using AuthenticationService.Data.Repositories.Implementations;
+using AuthenticationService.Services;
+using AuthenticationService.Services.Implementations;
+using Microsoft.EntityFrameworkCore;
 
-namespace AuthenticationService
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<EntityAuthenticationContext>(contextbuilder =>
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+    contextbuilder.UseSqlServer(builder.Configuration["ConnectionString"]);
+});
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthenticationService, JwtAuthenticationService>(
+    provider => 
+        new JwtAuthenticationService(
+            provider.GetRequiredService<IUserRepository>(), 
+            builder.Configuration["JwtSecret"],
+            provider.GetService<ILogger<JwtAuthenticationService>>()
+            )
+        );
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
