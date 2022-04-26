@@ -1,4 +1,4 @@
-name: .NET
+name: .NET Test Image Service
 
 on:
   push:
