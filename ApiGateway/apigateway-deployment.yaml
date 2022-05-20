@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apigateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app: apigateway
+  strategy: {}
+  template:
+    metadata:
+        labels:
+            app: apigateway
+    spec:
+      containers:
+        - image: k3d-portrait-portfolio-registry:5000/apigateway:latest
+          name: apigateway
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80           
+          resources: {}
+      restartPolicy: Always
+status: {}

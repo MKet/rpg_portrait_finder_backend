@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  authenticationservice:
+    image: ${DOCKER_REGISTRY-}authenticationservice
+    ports: 
+        - "80:5002"
+    build:
+      context: .
+      dockerfile: AuthenticationService/Dockerfile
+
+  imageservice:
+    image: ${DOCKER_REGISTRY-}imageservice
+    ports: 
+        - "80:5003"
+    build:
+      context: .
+      dockerfile: ImageService/Dockerfile
+
+
+  apigateway:
+    image: ${DOCKER_REGISTRY-}apigateway
+    ports: 
+        - "80:5001"
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+

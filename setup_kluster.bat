@@ -1,0 +1,2 @@
+k3d registry create portrait-portfolio-registry --port 5001
+k3d cluster create portrait-portfolio --port 7280:80@loadbalancer --registry-use portrait-portfolio-registry:5000 --registry-config "k3d-registries.yaml"

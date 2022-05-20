@@ -14,7 +14,7 @@ namespace AuthenticationService.Controllers
 
         public AuthenticationController(IAuthenticationService service) => _service = service;
 
-        [HttpPost]
+        [HttpPost("/login")]
         public async Task<ActionResult<AuthToken>> Authenticate([FromBody] AuthenticationData authenticationData)
         {
             var token = await _service.LoginAsync(authenticationData.Username, authenticationData.Password);
@@ -26,6 +26,22 @@ namespace AuthenticationService.Controllers
             else
             {
                 return Unauthorized();
+            }
+
+        }
+
+        [HttpPost("/register")]
+        public async Task<ActionResult<AuthToken>> Register([FromBody] NewUserData newUserData)
+        {
+            bool registerSuccess = await _service.RegisterAsync(newUserData.Username, newUserData.Email, newUserData.Password);
+
+            if (registerSuccess)
+            {
+                return Ok("user.created");
+            }
+            else
+            {
+                return BadRequest("user.creation.failed");
             }
 
         }

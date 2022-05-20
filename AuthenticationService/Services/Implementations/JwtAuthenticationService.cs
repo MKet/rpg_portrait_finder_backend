@@ -4,19 +4,22 @@ using AuthenticationService.Data.Repositories;
 using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Exceptions;
+using System.Security.Cryptography;
 
 namespace AuthenticationService.Services.Implementations
 {
     public class JwtAuthenticationService : IAuthenticationService
     {
         private readonly IUserRepository _userRepository;
-        private readonly string _secret;
+        private readonly string _privateKey;
+        private readonly string _publicKey;
         private readonly ILogger<JwtAuthenticationService>? _logger;
 
-        public JwtAuthenticationService(IUserRepository userRepository, string secret, ILogger<JwtAuthenticationService>? logger)
+        public JwtAuthenticationService(IUserRepository userRepository, string privatekey, string publicKey, ILogger<JwtAuthenticationService>? logger)
         {
             _userRepository = userRepository;
-            _secret = secret;
+            _privateKey = privatekey;
+            _publicKey = publicKey;
             _logger = logger;
         }
 
@@ -32,6 +35,14 @@ namespace AuthenticationService.Services.Implementations
             {
                 return null;
             }
+        }
+
+        public async Task<bool> RegisterAsync(string username, string email, string password)
+        {
+            string hash = BCrypt.Net.BCrypt.EnhancedHashPassword(password);
+            bool userAdded = await _userRepository.AddUser(username, email, hash);
+
+            return userAdded;
         }
 
         public async Task<bool> Verify(string token)
@@ -53,10 +64,23 @@ namespace AuthenticationService.Services.Implementations
             }
         }
 
+        private RSA GetPrivateKey()
+        {
+            using RSA rsa = RSA.Create();
+            rsa.ImportRSAPrivateKey(Convert.FromBase64String(_privateKey), out _);
+            return rsa;
+        }
+
+        private RSA GetPublicKey()
+        {
+            using RSA rsa = RSA.Create();
+            rsa.ImportRSAPublicKey(Convert.FromBase64String(_publicKey), out _);
+            return rsa;
+        }
+
         private JwtBuilder CreateJwtBuilder()
             => JwtBuilder.Create()
-                .WithAlgorithm(new HMACSHA256Algorithm()) // symmetric
-                .WithSecret(_secret);
+                .WithAlgorithm(new RS512Algorithm(GetPublicKey(), GetPrivateKey()));
 
         private string EncodeJwt(User user)
         {

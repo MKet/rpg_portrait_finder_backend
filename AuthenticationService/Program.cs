@@ -22,7 +22,8 @@ builder.Services.AddScoped<IAuthenticationService, JwtAuthenticationService>(
     provider => 
         new JwtAuthenticationService(
             provider.GetRequiredService<IUserRepository>(), 
-            builder.Configuration["JwtSecret"],
+            builder.Configuration["RSA_private"],
+            builder.Configuration["RSA_public"],
             provider.GetService<ILogger<JwtAuthenticationService>>()
             )
         );
@@ -32,8 +33,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
+    
+    EntityAuthenticationContext context = scope.ServiceProvider.GetRequiredService<EntityAuthenticationContext>();
+    context.Database.Migrate();
     app.UseSwagger();
     app.UseSwaggerUI();
+    await context.SeedAsync();
 }
 
 app.UseHttpsRedirection();
