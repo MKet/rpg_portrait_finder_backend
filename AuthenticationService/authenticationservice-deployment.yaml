@@ -24,8 +24,8 @@ spec:
                 secretKeyRef:
                   name: authenticationservice
                   key: ConnectionString
-            - name: ZOOKEEPER_SERVER_1
-              value: zoo1
+            - name: brokerHost
+              value: kafka-service:9092
           resources: {}
           
       restartPolicy: Always

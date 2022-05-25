@@ -13,30 +13,29 @@
       "UpstreamHttpMethod": [ "POST", "PUT", "GET" ]
     },
     {
-      "DownstreamPathTemplate": "/register",
+      "DownstreamPathTemplate": "/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "authenticationservice",
+          "Host": "authenticationservice.default.svc.cluster.local",
           "Port": 5002
         }
       ],
-      "UpstreamPathTemplate": "/api/register",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
     },
     {
-      "DownstreamPathTemplate": "/login",
+      "DownstreamPathTemplate": "/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "authenticationservice",
-          "Port": 5002
+          "Host": "authenticationservice.default.svc.cluster.local",
+          "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/api/login",
-      "UpstreamHttpMethod": [ "POST" ]
+      "UpstreamPathTemplate": "/api/auth/80/{everything}",
+      "UpstreamHttpMethod": [ "POST", "GET" ]
     }
-
   ],
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:7280"
