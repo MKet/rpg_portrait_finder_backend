@@ -1,25 +1,25 @@
 ﻿using AuthenticationLibrary.Models.Output;
 using AuthenticationService.Data;
 using AuthenticationService.Data.Repositories;
+using Azure.Security.KeyVault.Keys;
 using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Exceptions;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace AuthenticationService.Services.Implementations
 {
     public class JwtAuthenticationService : IAuthenticationService
     {
         private readonly IUserRepository _userRepository;
-        private readonly string _privateKey;
-        private readonly string _publicKey;
+        private readonly IJwtAlgorithm _jwtAlgorithm;
         private readonly ILogger<JwtAuthenticationService>? _logger;
 
-        public JwtAuthenticationService(IUserRepository userRepository, string privatekey, string publicKey, ILogger<JwtAuthenticationService>? logger)
+        public JwtAuthenticationService(IUserRepository userRepository, IJwtAlgorithm jwtAlgorithm, ILogger<JwtAuthenticationService>? logger)
         {
             _userRepository = userRepository;
-            _privateKey = privatekey;
-            _publicKey = publicKey;
+            _jwtAlgorithm = jwtAlgorithm;
             _logger = logger;
         }
 
@@ -64,23 +64,9 @@ namespace AuthenticationService.Services.Implementations
             }
         }
 
-        private RSA GetPrivateKey()
-        {
-            using RSA rsa = RSA.Create();
-            rsa.ImportRSAPrivateKey(Convert.FromBase64String(_privateKey), out _);
-            return rsa;
-        }
-
-        private RSA GetPublicKey()
-        {
-            using RSA rsa = RSA.Create();
-            rsa.ImportRSAPublicKey(Convert.FromBase64String(_publicKey), out _);
-            return rsa;
-        }
-
         private JwtBuilder CreateJwtBuilder()
             => JwtBuilder.Create()
-                .WithAlgorithm(new RS512Algorithm(GetPublicKey(), GetPrivateKey()));
+                .WithAlgorithm(_jwtAlgorithm);
 
         private string EncodeJwt(User user)
         {
