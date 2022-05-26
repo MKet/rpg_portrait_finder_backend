@@ -7,5 +7,6 @@ namespace AuthenticationService.Services
         Task<AuthToken?> LoginAsync(string username, string pasword);
 
         Task<bool> Verify(string token);
+        Task<bool> RegisterAsync(string username, string Email, string password);
     }
 }

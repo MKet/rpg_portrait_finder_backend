@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authenticationservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        app: authenticationservice
+  strategy: {}
+  template:
+    metadata:
+        labels:
+            app: authenticationservice
+    spec:
+      containers:
+        - image: k3d-portrait-portfolio-registry:5000/apigateway:latest
+          name: authenticationservice
+          ports:
+            - containerPort: 80
+          env:
+            - name: ConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: authenticationservice
+                  key: ConnectionString
+            - name: brokerHost
+              value: kafka-service:9092
+          resources: {}
+          
+      restartPolicy: Always
+status: {}

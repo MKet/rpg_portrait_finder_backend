@@ -1,22 +1,25 @@
 ﻿using AuthenticationLibrary.Models.Output;
 using AuthenticationService.Data;
 using AuthenticationService.Data.Repositories;
+using Azure.Security.KeyVault.Keys;
 using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Exceptions;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AuthenticationService.Services.Implementations
 {
     public class JwtAuthenticationService : IAuthenticationService
     {
         private readonly IUserRepository _userRepository;
-        private readonly string _secret;
+        private readonly IJwtAlgorithm _jwtAlgorithm;
         private readonly ILogger<JwtAuthenticationService>? _logger;
 
-        public JwtAuthenticationService(IUserRepository userRepository, string secret, ILogger<JwtAuthenticationService>? logger)
+        public JwtAuthenticationService(IUserRepository userRepository, IJwtAlgorithm jwtAlgorithm, ILogger<JwtAuthenticationService>? logger)
         {
             _userRepository = userRepository;
-            _secret = secret;
+            _jwtAlgorithm = jwtAlgorithm;
             _logger = logger;
         }
 
@@ -32,6 +35,14 @@ namespace AuthenticationService.Services.Implementations
             {
                 return null;
             }
+        }
+
+        public async Task<bool> RegisterAsync(string username, string email, string password)
+        {
+            string hash = BCrypt.Net.BCrypt.EnhancedHashPassword(password);
+            bool userAdded = await _userRepository.AddUser(username, email, hash);
+
+            return userAdded;
         }
 
         public async Task<bool> Verify(string token)
@@ -55,8 +66,7 @@ namespace AuthenticationService.Services.Implementations
 
         private JwtBuilder CreateJwtBuilder()
             => JwtBuilder.Create()
-                .WithAlgorithm(new HMACSHA256Algorithm()) // symmetric
-                .WithSecret(_secret);
+                .WithAlgorithm(_jwtAlgorithm);
 
         private string EncodeJwt(User user)
         {

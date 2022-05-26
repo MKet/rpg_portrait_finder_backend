@@ -5,8 +5,12 @@ using AuthenticationService.Data.Contexts;
 using AuthenticationService.Data.Repositories.Implementations;
 using AuthenticationService.Services;
 using AuthenticationService.Services.Implementations;
+using Azure.Security.KeyVault.Keys;
+using Azure.Security.KeyVault.Keys.Cryptography;
+using JWT.Algorithms;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using NUnit.Framework;
 using System.Threading.Tasks;
 
@@ -17,7 +21,6 @@ namespace AuthenticationServiceTest
         private UserRepository _repository;
         private EntityAuthenticationContext context;
         private IAuthenticationService _service;
-        private readonly string _secret = "MY_SECRET";
         private readonly string testUsername = "bob322";
         private readonly string testPassword = "password";
 
@@ -28,7 +31,12 @@ namespace AuthenticationServiceTest
             context = new EntityAuthenticationContext(options);
             await context.SeedAsync();
             _repository = new UserRepository(context);
-            _service = new JwtAuthenticationService(new UserRepository(context), _secret, null);
+
+            Mock<AzureRSAJwtAlgorithm> jwtAlgo = new Mock<AzureRSAJwtAlgorithm>(null);
+            jwtAlgo.Setup(a => a.Sign(It.IsAny<byte[]>(), It.IsAny<byte[]>())).Returns(new byte[] {1, 2, 3} );
+            jwtAlgo.Setup(a => a.Verify(It.IsAny<byte[]>(), It.IsAny<byte[]>())).Returns(true);
+
+            _service = new JwtAuthenticationService(new UserRepository(context), jwtAlgo.Object, null);
         }
 
         [Test]
@@ -82,17 +90,6 @@ namespace AuthenticationServiceTest
             var response = await controller.Authenticate(new AuthenticationData(testUsername, "wrong"));
 
             Assert.That(response.Result, Is.TypeOf<UnauthorizedResult>() | Is.TypeOf<UnauthorizedObjectResult>());
-        }
-
-        [Test]
-        public async Task AuthenticateDifferingToken()
-        {
-            var token = await _service.LoginAsync(testUsername, testPassword);
-            var otherTokenService = new JwtAuthenticationService(new UserRepository(context), "DIFFERENT_SECRET", null);
-
-            var verified = await otherTokenService.Verify(token.Token);
-
-            Assert.That(verified, Is.False);
         }
 
         [TearDown]
