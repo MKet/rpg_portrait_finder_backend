@@ -1,3 +1,4 @@
+using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
 using Microsoft.Extensions.Azure;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,13 @@ builder.Services.AddAzureClients(clientBuilder =>
     clientBuilder.AddBlobServiceClient(builder.Configuration["BlobConnectionString:blob"], preferMsi: true);
     clientBuilder.AddQueueServiceClient(builder.Configuration["BlobConnectionString:queue"], preferMsi: true);
 });
-
+builder.Services.AddScoped(provider =>
+    new ComputerVisionClient(
+        new ApiKeyServiceClientCredentials(builder.Configuration["AZ_Cognitive_API_key"])
+        )
+    {
+        Endpoint = builder.Configuration["AZ_Client_Endpoint"]
+    });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

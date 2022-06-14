@@ -25,5 +25,6 @@ docker push localhost:5001/authenticationservice:latest
 kubectl create secret generic authenticationservice --from-literal=ConnectionString="mssql-deployment:1433;Initial Catalog=AuthenticationService;Username=SA;Password="+%sa_password%
 kubectl apply -f AuthenticationService/authenticationservice-deployment.yaml
 kubectl apply -f AuthenticationService/authenticationservice-service.yaml
+kubectl apply -f AuthenticationService/authenticationservice-autoscaler.yaml
 ENDLOCAL
 pause

@@ -23,10 +23,10 @@ namespace ProcessImage
         };
 
         [FunctionName("Function1")]
-        public async Task Run([BlobTrigger("images/{name}", Connection = "BlobConnectionString")]BlobClient blobClient, string name, ILogger log)
+        public async Task Run([BlobTrigger("{artistName}", Connection = "BlobConnectionString")]BlobClient blobClient, string artistName, string portraitName, ILogger log)
         {
             using var blob = await blobClient.OpenReadAsync();
-            log.LogInformation($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");
+            log.LogInformation($"C# Blob trigger function Processed blob\n Name:{artistName} \n Size: {blob.Length} Bytes");
 
             int largestFormatArray = _validFormats.Max(b => b.Length);
 
