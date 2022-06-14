@@ -2,7 +2,7 @@ name: Build and deploy .NET Core Function App to Azure functions app
 on:
   push:
     branches:
-    - k8s
+    - main
 env:
   AZURE_FUNCTIONAPP_NAME: Portrait-Portfolio20220525162444
   AZURE_FUNCTIONAPP_PACKAGE_PATH: ProcessImage/publish
