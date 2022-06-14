@@ -23,7 +23,7 @@ namespace ProcessImage
         };
 
         [FunctionName("Function1")]
-        public async Task Run([BlobTrigger("{artistName}", Connection = "BlobConnectionString")]BlobClient blobClient, string artistName, string portraitName, ILogger log)
+        public async Task Run([BlobTrigger("{artistName}", Connection = "BlobConnectionString")]BlobClient blobClient, string artistName, ILogger log)
         {
             using var blob = await blobClient.OpenReadAsync();
             log.LogInformation($"C# Blob trigger function Processed blob\n Name:{artistName} \n Size: {blob.Length} Bytes");
