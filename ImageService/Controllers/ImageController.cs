@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Blobs;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Net.Http.Headers;
 using Azure.Storage.Blobs.Models;
 using ImageService.Data.RequestData;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.CognitiveServices.Vision.ComputerVision;
+using Microsoft.Azure.CognitiveServices.Vision.ComputerVision.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -14,10 +14,12 @@ namespace ImageService.Controllers
     public class ImageController : ControllerBase
     {
         private readonly BlobServiceClient blobClient;
+        private readonly ComputerVisionClient visionClient;
 
-        public ImageController(BlobServiceClient blobClient)
+        public ImageController(BlobServiceClient blobClient, ComputerVisionClient visionClient)
         {
-            this.blobClient = blobClient ?? throw new ArgumentNullException(nameof(blobClient));
+            this.blobClient = blobClient;
+            this.visionClient = visionClient;
         }
 
         // GET: api/<ImageController>
@@ -55,10 +57,26 @@ namespace ImageService.Controllers
             await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
             var client = containerClient.GetBlobClient(requestData.ImageName.ToLower());
 
-            using var stream = file.OpenReadStream();
-            await client.UploadAsync(stream);
-            
-            return Ok();
+
+            // Specify the features to return  
+            List<VisualFeatureTypes?> features =
+            new List<VisualFeatureTypes?>()
+            {
+                VisualFeatureTypes.Categories, VisualFeatureTypes.Description, VisualFeatureTypes.ImageType,
+                VisualFeatureTypes.Tags, VisualFeatureTypes.Adult
+            };
+
+            using (var stream = file.OpenReadStream())
+            {
+                var analysisResult = await visionClient.AnalyzeImageInStreamAsync(stream, features);
+                if (analysisResult.Adult.IsAdultContent && analysisResult.Adult.AdultScore > 0.6)
+                    return BadRequest("No Adult content allowed");
+            }
+            using (var stream = file.OpenReadStream())
+            {
+                var uploadResult = await client.UploadAsync(stream);
+                return Ok(uploadResult);
+            }
         }
 
         // DELETE api/<ImageController>/5
